@@ -57,6 +57,22 @@ trap(struct trapframe *tf)
       wakeup(&ticks);
       release(&tickslock);
     }
+
+    //current priv level : cs, user code segement selector.
+    //esp, ss in CPU internal reg
+    if(myproc()!= 0 && (tf->cs & 3) == 3){ // myproc and alarmhandler is not null.      
+      myproc()->passedticks ++;
+      if(myproc()->passedticks == myproc()->alarmticks){
+        myproc()->passedticks = 0;
+        //push eip
+        tf->esp -= 4; 
+        *((uint*)(tf->esp)) = tf->eip;
+        //change eip to alarmhandler
+        tf->eip = (uint)myproc()->alarmhandler;
+      }
+    }
+
+
     lapiceoi();
     break;
   case T_IRQ0 + IRQ_IDE:
@@ -129,3 +145,4 @@ trap(struct trapframe *tf)
   if(myproc() && myproc()->killed && (tf->cs&3) == DPL_USER)
     exit();
 }
+
