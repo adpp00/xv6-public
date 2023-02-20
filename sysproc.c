@@ -104,7 +104,7 @@ sys_uptime(void)
 int sys_halt(void){
   char *p = "Shutdown";
   for( ; *p; p++)
-    outb(0x8900, *p);
+    outw(0x604, 0x2000);
   return 0;
 }
 
